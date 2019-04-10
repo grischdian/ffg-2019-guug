@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    k8s-app: ka-hp-service
+  name: ka-hp-service
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  terminationGracePeriodSeconds: 5
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+  initContainers:
+  - name: setup-sysctl-nobind
+    command:
+    - sh
+    - -c
+    - sysctl -w net.ipv4.ip_nonlocal_bind=1
+    image: docker.io/busybox:1.30
+    resources:
+      limits:
+        cpu: 10m
+        memory: 50Mi
+      requests:
+        cpu: 10m
+        memory: 50Mi
+    securityContext:
+      privileged: true
+  containers:
+  - name: haproxy
+    image: docker.io/b1systems/haproxy:k8scp-1.1
+    resources: {}
+    env:
+    - name: KUBEAPI_VIP
+      value: "ipaddr_vip"
+    - name: HAPROXY_BACKENDS
+      value: "ipaddr_apiserver:port,ipaddr_apiserver2:port,ipaddr_apiserver3:port,..."
+  - name: keepalived
+    image: docker.io/b1systems/keepalived:k8scp-1.1
+    resources: {}
+    env:
+    - name: KEEPALIVED_VIP
+      value: "ipaddr_vip"
+    - name: KEEPALIVED_INTERFACE
+      value: "interface_vip, e.g. eth0"
+    - name: AUTH_PASSWORD
+      value: "<password 8 chars long, e.g. head -c5 /dev/urandom | base64>"
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
