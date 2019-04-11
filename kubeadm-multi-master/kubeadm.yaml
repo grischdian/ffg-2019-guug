@@ -9,24 +9,25 @@ bootstrapTokens:
   - authentication
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 1.2.3.4
+  advertiseAddress: "IPADDR_MASTER1"
   bindPort: 6443
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
-  name: k8s-master-1.training.b1-systems.de
+  name: master1.test
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
 ---
 apiServer:
   timeoutForControlPlane: 4m0s
-  extraArgs:
-    bind-address: "192.168.200.11"
-    advertise-address: "192.168.200.10"
+  extraArgs: 
+    bind-address: "IPADDR_MASTER1"
+    advertise-address: "IPADDR_VIP"
+    secure-port: "6443"
 apiVersion: kubeadm.k8s.io/v1beta1
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes
-controlPlaneEndpoint: "192.168.200.10:6443"
+controlPlaneEndpoint: "IPADDR_VIP:6443"
 controllerManager: {}
 dns:
   type: CoreDNS
@@ -38,6 +39,6 @@ kind: ClusterConfiguration
 kubernetesVersion: v1.14.0
 networking:
   dnsDomain: cluster.local
-  podSubnet: "10.224.0.0/16"
+  podSubnet: "NET-like-flannel.yaml"
   serviceSubnet: 10.96.0.0/12
 scheduler: {}
